@@ -16,19 +16,17 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, features, captions):
-        # features: (batch_size, embed_size)
-        # captions: (batch_size, max_len)
 
         embeddings = self.embedding(captions) * torch.sqrt(torch.tensor(self.embed_size, dtype=torch.float))
         embeddings = self.pos_encoder(embeddings)
-        embeddings = embeddings.permute(1, 0, 2)  # (max_len, batch_size, embed_size)
+        embeddings = embeddings.permute(1, 0, 2)  
 
-        features = features.unsqueeze(0)  # (1, batch_size, embed_size)
+        features = features.unsqueeze(0)  
 
         tgt_mask = self.transformer.generate_square_subsequent_mask(len(captions[0])).to(captions.device)
 
         output = self.transformer(tgt=embeddings, memory=features, tgt_mask=tgt_mask)
-        output = self.fc_out(output)  # (max_len, batch_size, vocab_size)
+        output = self.fc_out(output)  
         return output
 
 class PositionalEncoding(nn.Module):
@@ -41,10 +39,10 @@ class PositionalEncoding(nn.Module):
         div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-torch.log(torch.tensor(10000.0)) / d_model))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(1)  # (max_len, 1, d_model)
+        pe = pe.unsqueeze(1)  
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        # x: (max_len, batch_size, d_model)
+        
         x = x + self.pe[:x.size(0), :]
         return self.dropout(x)

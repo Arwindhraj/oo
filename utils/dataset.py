@@ -18,7 +18,6 @@ class Flickr30kDataset(Dataset):
         self.root_dir = root_dir
         self.transform = transform
 
-        # Initialize and build the vocabulary
         self.vocab = Vocabulary(freq_threshold)
         self.captions = self.load_captions(captions_file)
         self.vocab.build_vocabulary([caption for captions in self.captions.values() for caption in captions])
@@ -44,10 +43,10 @@ class Flickr30kDataset(Dataset):
         captions = {}
         with open(captions_file, 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
-            header = next(reader)  # Skip the header row
+            header = next(reader) 
             for row in reader:
                 if len(row) < 2:
-                    continue  # Skip malformed lines
+                    continue 
                 image_id, caption = row[0].strip(), row[1].strip()
                 if image_id in captions:
                     captions[image_id].append(caption)
@@ -62,16 +61,13 @@ class Flickr30kDataset(Dataset):
         image_id = self.image_ids[idx]
         img_path = os.path.join(self.root_dir, image_id)
         
-        # Load and preprocess the image
         image = Image.open(img_path).convert("RGB")
         if self.transform is not None:
             image = self.transform(image)
 
-        # Get one of the captions randomly
         captions_list = self.captions[image_id]
-        caption = captions_list[0]  # You can modify this to select a random caption if desired
+        caption = captions_list[0]
 
-        # Numericalize the caption
         numericalized_caption = [self.vocab.stoi["<SOS>"]]
         numericalized_caption += self.vocab.numericalize(caption)
         numericalized_caption.append(self.vocab.stoi["<EOS>"])

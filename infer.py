@@ -7,18 +7,15 @@ from utils.vocabulary import Vocabulary
 import json
 
 def load_model(encoder_path, decoder_path, vocab_path, device):
-    # Initialize models
     encoder = Encoder(embed_size=512).to(device)
-    decoder = Decoder(embed_size=512, vocab_size=10000).to(device)  # Adjust vocab_size accordingly
+    decoder = Decoder(embed_size=512, vocab_size=10000).to(device) 
 
-    # Load the saved model parameters
     encoder.load_state_dict(torch.load(encoder_path, map_location=device)['encoder_state_dict'])
     decoder.load_state_dict(torch.load(decoder_path, map_location=device)['decoder_state_dict'])
 
     encoder.eval()
     decoder.eval()
 
-    # Load vocabulary
     with open(vocab_path, 'r') as f:
         vocab = json.load(f)
     vocab = Vocabulary(freq_threshold=5)
@@ -35,7 +32,7 @@ def preprocess_image(image_path):
                              (0.229, 0.224, 0.225))
     ])
     image = Image.open(image_path).convert("RGB")
-    image = transform(image).unsqueeze(0)  # (1, 3, 224, 224)
+    image = transform(image).unsqueeze(0) 
     return image
 
 def generate_caption(encoder, decoder, vocab, image, device, max_length=20):
@@ -44,7 +41,7 @@ def generate_caption(encoder, decoder, vocab, image, device, max_length=20):
         generated = [vocab.stoi["<SOS>"]]
 
         for _ in range(max_length):
-            tgt = torch.tensor(generated).unsqueeze(0).to(device)  # (1, len)
+            tgt = torch.tensor(generated).unsqueeze(0).to(device) 
             output = decoder(features, tgt)
             output = output.argmax(2)
             next_word = output[0, -1].item()
@@ -56,22 +53,17 @@ def generate_caption(encoder, decoder, vocab, image, device, max_length=20):
         return ' '.join(caption)
 
 def main():
-    # Paths
     encoder_path = 'checkpoints/epoch_10.pth'
     decoder_path = 'checkpoints/epoch_10.pth'
-    vocab_path = 'data/Flickr30k/vocab.json'  # Save your vocab as JSON during training
+    vocab_path = 'vocab.json' 
     image_path = 'path_to_your_image.jpg'
 
-    # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # Load models and vocabulary
     encoder, decoder, vocab = load_model(encoder_path, decoder_path, vocab_path, device)
 
-    # Preprocess image
     image = preprocess_image(image_path)
 
-    # Generate caption
     caption = generate_caption(encoder, decoder, vocab, image, device)
     print(f'Caption: {caption}')
 
@@ -90,11 +82,11 @@ import json
 import argparse
 
 def load_model(encoder_path, decoder_path, vocab_path, device):
-    # Initialize models
+    
     encoder = Encoder(embed_size=512).to(device)
-    decoder = Decoder(embed_size=512, vocab_size=10000).to(device)  # Adjust vocab_size accordingly
+    decoder = Decoder(embed_size=512, vocab_size=10000).to(device)  
 
-    # Load the saved model parameters
+    
     checkpoint = torch.load(encoder_path, map_location=device)
     encoder.load_state_dict(checkpoint['encoder_state_dict'])
     decoder.load_state_dict(checkpoint['decoder_state_dict'])
@@ -102,7 +94,7 @@ def load_model(encoder_path, decoder_path, vocab_path, device):
     encoder.eval()
     decoder.eval()
 
-    # Load vocabulary
+    
     with open(vocab_path, 'r') as f:
         vocab_data = json.load(f)
     vocab = Vocabulary(freq_threshold=5)
@@ -119,7 +111,7 @@ def preprocess_image(image_path):
                              (0.229, 0.224, 0.225))
     ])
     image = Image.open(image_path).convert("RGB")
-    image = transform(image).unsqueeze(0)  # (1, 3, 224, 224)
+    image = transform(image).unsqueeze(0)  
     return image
 
 def generate_caption(encoder, decoder, vocab, image, device, max_length=20):
@@ -151,16 +143,12 @@ def parse_args():
 def main():
     args = parse_args()
 
-    # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # Load models and vocabulary
     encoder, decoder, vocab = load_model(args.encoder_path, args.decoder_path, args.vocab_path, device)
 
-    # Preprocess image
     image = preprocess_image(args.image_path)
 
-    # Generate caption
     caption = generate_caption(encoder, decoder, vocab, image, device)
     print(f'Caption: {caption}')
 
